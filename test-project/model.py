@@ -9,29 +9,21 @@ class Model:
     This structure is required for deployment on platforms like Cerebrium.
     """
     def __init__(self):
-        # --- THIS IS THE KEY CHANGE ---
-        # 1. Initialize BOTH the preprocessor and the ONNX model in __init__.
-        # 2. Store them as instance attributes: self.preprocessor and self.model.
-        
-        # --- Preprocessor Initialization ---
+    # --- Preprocessor Initialization ---
         self.size = (224, 224)
         self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
         self.std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
-        # --- ONNX Model Initialization ---
-        try:
-            # Use an absolute path to find the model file reliably.
-            script_dir = os.path.dirname(__file__)
-            model_path = os.path.join(script_dir, "model.onnx")
-            
-            providers = ['CPUExecutionProvider']
-            self.session = ort.InferenceSession(model_path, providers=providers)
-            self.input_name = self.session.get_inputs()[0].name
-            self.output_name = self.session.get_outputs()[0].name
-            self.init_error = None
-        except Exception as e:
-            self.session = None
-            self.init_error = str(e)
+        # --- ONNX Model Initialization (NO try...except block) ---
+        # This will ensure the real error is shown in the server logs.
+        script_dir = os.path.dirname(__file__)
+        model_path = os.path.join(script_dir, "model.onnx")
+        
+        providers = ['CPUExecutionProvider']
+        self.session = ort.InferenceSession(model_path, providers=providers)
+        self.input_name = self.session.get_inputs()[0].name
+        self.output_name = self.session.get_outputs()[0].name
+
 
     def preprocess(self, image_input):
         """
