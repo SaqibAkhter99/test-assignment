@@ -61,7 +61,17 @@ class OnnxModel:
         Runs inference on a pre-processed image tensor.
         """
         # Create the input dictionary for ONNX Runtime
-        ort_inputs = {self.input_name: preprocessed_image}
-        ort_outs = self.session.run(None, ort_inputs)
-        return ort_outs[0]
-    
+        #ort_inputs = {self.input_name: preprocessed_image}
+        #
+        # Run inference
+        #ort_outs = self.session.run(None, ort_inputs)
+        #
+        # Return the first output (the probability array)
+        #return ort_outs[0]
+	
+    	ort_inputs = {self.input_name: preprocessed_image}
+    	ort_outs = self.session.run(None, ort_inputs)
+
+       # Convert NumPy array to list
+        scores = ort_outs[0].tolist()
+    	return {"probabilities": scores}
