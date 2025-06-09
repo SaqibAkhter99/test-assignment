@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 import onnxruntime as ort
-
+import os
 class ImagePreprocessor:
     """
     Handles all pre-processing steps required to transform an input image
@@ -44,34 +44,33 @@ class ImagePreprocessor:
 class OnnxModel:
     """
     Loads an ONNX model and provides a method to run predictions.
-    This class is resilient to failures during initialization.
+    This class is resilient to path issues and failures during initialization.
     """
     def __init__(self, model_path="model.onnx"):
         self.session = None
         self.init_error = None
         
-        # --- THIS IS A CRITICAL FIX ---
-        # Catch errors that happen during model loading
         try:
-            # Use only CPU provider for maximum compatibility in test environments
+            # --- THIS IS THE CRITICAL FIX ---
+            # Construct an absolute path to the model file.
+            # This ensures the model is found, regardless of where the script is run from.
+            # __file__ gives the path to the current file (model.py).
+            # os.path.dirname gets the directory of that file.
+            # os.path.join combines the directory with the model's filename.
+            script_dir = os.path.dirname(__file__)
+            absolute_model_path = os.path.join(script_dir, model_path)
+
             providers = ['CPUExecutionProvider']
-            self.session = ort.InferenceSession(model_path, providers=providers)
+            self.session = ort.InferenceSession(absolute_model_path, providers=providers)
             self.input_name = self.session.get_inputs()[0].name
             self.output_name = self.session.get_outputs()[0].name
         except Exception as e:
-            # If loading fails, store the error message
             self.init_error = str(e)
 
     def predict(self, preprocessed_image):
-        """
-        Runs inference. If the model failed to load, it returns the
-        initialization error. Otherwise, it runs prediction.
-        """
-        # First, check if the model loaded correctly during __init__
         if not self.session:
             return f"MODEL FAILED TO LOAD: {self.init_error}"
             
-        # If model loaded, proceed with prediction
         try:
             ort_inputs = {self.input_name: preprocessed_image}
             ort_outs = self.session.run([self.output_name], ort_inputs)
@@ -81,6 +80,4 @@ class OnnxModel:
             
             return int(predicted_class_index)
         except Exception as e:
-            # Catch any errors that happen during the predict call itself
             return f"INFERENCE FAILED: {str(e)}"
-
