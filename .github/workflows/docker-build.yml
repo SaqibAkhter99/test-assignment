@@ -19,4 +19,4 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: docker build -t my-image:${{ github.sha }} .
+        run: docker build -f test-project/Dockerfile -t my-image:${{ github.sha }} .
