@@ -1,6 +1,6 @@
 # Dockerfile
 # Use a base image that includes Python. A slim version is efficient.
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set the working directory inside the container
 WORKDIR /app
