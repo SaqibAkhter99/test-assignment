@@ -7,7 +7,7 @@ from model import Model
 # --- Configuration ---
 # Choose which image you want to test. Note: The expected class for tiger shark is 2.
 IMAGE_TO_TEST = "n01491361_tiger_shark.JPEG"
-EXPECTED_ID = 2 
+EXPECTED_ID = 3
 # IMAGE_TO_TEST = "n01667114_mud_turtle.jpeg"
 # EXPECTED_ID = 35
 

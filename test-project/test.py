@@ -16,7 +16,8 @@ def run_local_tests():
     # The model path is now handled inside the Model class, so we don't need it here.
     test_images = {
         "n01440764_tench.jpeg": 0,
-        "n01667114_mud_turtle.jpeg": 35
+        "n01667114_mud_turtle.jpeg": 35,
+        "n01491361_tiger_shark.jpeg": 3
     }
 
     # --- CHANGE 2: Initialize only the single Model object ---

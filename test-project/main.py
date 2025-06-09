@@ -1,48 +1,57 @@
+# main.py
+
 import base64
 import io
-import numpy as np
 from PIL import Image
 import re
-from model import ImagePreprocessor, OnnxModel
+
+# --- CHANGE 1: Import the single, self-contained Model class ---
+from model import Model
+
+# This will hold the single, initialized model object, making it accessible
+# to the run() function.
+model = None
 
 def setup():
     """
     This function is run once when the serverless machine boots up.
-    It loads the model and preprocessor to be reused across requests.
+    It loads the self-contained model to be reused across all requests.
     """
-    global preprocessor, model
-    preprocessor = ImagePreprocessor()
-    model = OnnxModel()
-    print("Setup complete: Preprocessor and ONNX model are initialized and ready.")
+    # Use the global keyword to modify the 'model' variable defined outside this function
+    global model
+    
+    # --- CHANGE 2: Initialize only the single Model object ---
+    model = Model()
+    print("Setup complete: Self-contained Model is initialized and ready.")
 
 def run(item: dict):
+    """
+    This function is run for every prediction request.
+    It decodes the image and passes it to the model for a full end-to-end prediction.
+    """
     if 'image_b64' not in item:
         return {"error": "Request must include 'image_b64' field."}
 
     try:
+        # This part correctly decodes the incoming data
         base64_string = item['image_b64']
-        
-        # --- Step 2: Sanitize the base64 string ---
-        # This regex removes "data:image/jpeg;base64," or similar prefixes
         base64_string = re.sub('^data:image/.+;base64,', '', base64_string)
-
-        # Decode the sanitized base64 string
         image_data = base64.b64decode(base64_string)
-        
-        # Open the image from the in-memory bytes
         image = Image.open(io.BytesIO(image_data))
 
-        preprocessed_img = preprocessor.preprocess(image)
-        probabilities = model.predict(preprocessed_img)
+        # --- CHANGE 3: Simplify the prediction logic ---
+        # The run() function's job is now just to prepare the payload
+        # and call the model's predict method.
         
-        if probabilities is None or probabilities.size == 0:
-            raise ValueError("Model returned an empty prediction.")
+        # 1. Create the payload our model's predict() method expects
+        payload = {"image": image}
+        
+        # 2. Call predict() and get the final integer ID directly
+        predicted_class_id = model.predict(payload)
 
-        predicted_class_id = int(np.argmax(probabilities))
-        
+        # 3. Return the simple, JSON-friendly result
         return {
-            "predicted_class_id": predicted_class_id,
-            "probabilities": probabilities.tolist()
+            "predicted_class_id": predicted_class_id
         }
 
     except Exception as e:
