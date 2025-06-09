@@ -8,7 +8,7 @@ from model import ImagePreprocessor, OnnxModel
 
 # --- Configuration ---
 # Choose which image you want to test
-IMAGE_TO_TEST = "n01667114_mud_turtle.jpeg" # Expected class: 0
+IMAGE_TO_TEST = "n01491361_tiger_shark.JPEG" # Expected class: 0
 # IMAGE_TO_TEST = "n01667114_mud_turtle.jpeg" # Expected class: 35
 
 print(f"--- Starting Local Test for '{IMAGE_TO_TEST}' ---")
