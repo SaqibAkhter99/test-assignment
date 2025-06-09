@@ -25,7 +25,7 @@ def test_single_image(image_path: str):
         image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
     # Prepare the JSON payload in the format the server expects
-    payload = {"item": {"image_b64": image_b64}}
+    payload = {"image_b64": image_b64}
 
     # Prepare the headers for authentication
     headers = {
