@@ -42,10 +42,8 @@ class ImagePreprocessor:
         return np.expand_dims(transposed_img, axis=0).astype(np.float32)
 
 class OnnxModel:
-    """
-    Loads an ONNX model and provides a method to run predictions.
-    """
     def __init__(self, model_path="model.onnx"):
+        # ... (init method is the same) ...
         self.session = None
         self.init_error = None
         try:
@@ -60,19 +58,21 @@ class OnnxModel:
 
     def predict(self, preprocessed_image):
         """
-        Runs inference and returns the raw array of output scores (logits).
+        Runs inference and returns the final predicted class ID as a single integer.
+        This is required for the server's JSON serialization.
         """
         if not self.session:
             raise RuntimeError(f"MODEL FAILED TO LOAD: {self.init_error}")
             
         try:
             ort_inputs = {self.input_name: preprocessed_image}
-            ort_outs = self.session.run([self.output_name], ort_inputs)
+            logits = self.session.run([self.output_name], ort_inputs)[0]
             
             # --- THIS IS THE FIX ---
-            # Return the raw output array from the ONNX model.
-            # Do NOT calculate argmax here. Let the caller do it.
-            return ort_outs[0] 
+            # Calculate the final predicted class ID here.
+            predicted_id = np.argmax(logits, axis=1)[0]
+            
+            return int(predicted_id) # Return a standard Python int
             
         except Exception as e:
             raise RuntimeError(f"INFERENCE FAILED: {str(e)}")
