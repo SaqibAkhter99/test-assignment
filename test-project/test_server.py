@@ -12,22 +12,44 @@ ENDPOINT_URL = "https://api.cortex.cerebrium.ai/v4/p-ed6f8065/image-classifier-p
 
 
 
-def test_single_image(image_path: str):
-    # ... (code to open image and prepare payload remains the same) ...
+# test_server.py (CORRECTED VERSION)
 
-    # ... (code for headers and timing) ...
+def test_single_image(image_path: str):
+    """Sends one image to the deployed endpoint and prints the result."""
+    if not os.path.exists(image_path):
+        print(f"Error: Image path does not exist: {image_path}")
+        return None
+
+    # Read the image file in binary mode and encode it to base64
+    with open(image_path, "rb") as f:
+        image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    # --- THIS IS THE CRUCIAL LINE THAT WAS MISSING ---
+    # Prepare the JSON payload in the format the server expects
+    payload = {"item": {"image_b64": image_b64}}
+
+    # Prepare the headers for authentication
+    headers = {
+        "Authorization": f"Bearer {CEREBRIUM_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    print(f"\n--- Testing with image: {os.path.basename(image_path)} ---")
+    
+    start_time = time.time()
+    # Now, 'payload' is defined and can be used here without error
     response = requests.post(ENDPOINT_URL, json=payload, headers=headers)
-    # ... (code for printing status and latency) ...
+    end_time = time.time()
+    latency_ms = (end_time - start_time) * 1000
+
+    print(f"-> HTTP Status Code: {response.status_code}")
+    print(f"-> Response Time: {latency_ms:.2f} ms")
 
     if response.status_code == 200:
         result = response.json()
-        
-        # CRUCIAL CHANGE: Check if the server returned an error message
         if "error" in result:
             print(f"-> Server-side error reported: {result['error']}")
             return None
-        
-        # This code will now only run if there was no error key
         predicted_id = result.get("predicted_class_id")
         print(f"-> API Response: Predicted Class ID = {predicted_id}")
         return predicted_id
@@ -35,7 +57,6 @@ def test_single_image(image_path: str):
         print(f"-> HTTP Error: {response.text}")
         return None
 
-# ... (The run_preset_test_suite and main block do not need changes) ...
 
 
 def run_preset_test_suite():
