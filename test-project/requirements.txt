@@ -1,0 +1,7 @@
+# requirements.txt
+numpy
+Pillow
+# Use the GPU version of ONNX Runtime for accelerated inference
+onnxruntime-gpu
+requests
+
