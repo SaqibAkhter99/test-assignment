@@ -4,4 +4,5 @@ Pillow
 # Use the GPU version of ONNX Runtime for accelerated inference
 onnxruntime
 requests
+onnx
 

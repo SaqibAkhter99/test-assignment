@@ -1,7 +1,8 @@
 # convert_to_onnx.py
 import torch
 import os
-from pytorch_model import ResNet # Assumes pytorch_model.py is in the same directory
+from pytorch_model import Classifier
+ # Assumes pytorch_model.py is in the same directory
 
 def convert_model_to_onnx(weights_path, output_path):
     """
@@ -15,7 +16,7 @@ def convert_model_to_onnx(weights_path, output_path):
         raise FileNotFoundError(f"Weights file not found. Please download it and place it at: {weights_path}")
 
     # Initialize the model architecture (ImageNet has 1000 classes)
-    model = ResNet(num_classes=1000)
+    model = Classifier(num_classes=1000)
 
     # Load the trained weights into the model structure
     # Use map_location='cpu' to ensure it works regardless of the machine's hardware
