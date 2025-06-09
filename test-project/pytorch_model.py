@@ -1,13 +1,8 @@
 from typing import Callable, List, Optional, Type, Union
-
 import torch
 import torch.nn as nn
-
 from torch import Tensor
-import numpy as np
-
 from torchvision import transforms
-
 from PIL import Image
 
 

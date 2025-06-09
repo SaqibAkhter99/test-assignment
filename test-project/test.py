@@ -1,7 +1,4 @@
 # test.py
-import numpy as np
-import torch
-from pytorch_model import Classifier # Used for numerical comparison
 from model import ImagePreprocessor, OnnxModel
 
 def run_local_tests():
@@ -11,7 +8,6 @@ def run_local_tests():
     print("--- Starting Local Test Suite ---")
 
     # --- Test Setup ---
-    weights_path = 'weights/pytorch_model_weights.pth'
     onnx_path = 'model.onnx'
     test_images = {
         "n01440764_tench.jpeg": 0,
