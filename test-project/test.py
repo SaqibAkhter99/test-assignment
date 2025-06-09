@@ -1,7 +1,7 @@
 # test.py
 import numpy as np
 import torch
-from pytorch_model import ResNet # Used for numerical comparison
+from pytorch_model import Classifier # Used for numerical comparison
 from model import ImagePreprocessor, OnnxModel
 
 def run_local_tests():
@@ -40,7 +40,7 @@ def run_local_tests():
     # --- Test 3: Numerical Consistency Check (ONNX vs. PyTorch) ---
     print("\n[Test 3] Verifying Numerical Consistency between ONNX and PyTorch...")
     # Load original PyTorch model
-    pt_model = ResNet(num_classes=1000)
+    pt_model = Classifier(num_classes=1000)
     pt_model.load_state_dict(torch.load(weights_path, map_location='cpu'))
     pt_model.eval()
 

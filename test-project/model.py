@@ -44,22 +44,13 @@ class ImagePreprocessor:
 class OnnxModel:
     """
     Loads an ONNX model and provides a method to run predictions.
-    This class is resilient to path issues and failures during initialization.
     """
     def __init__(self, model_path="model.onnx"):
         self.session = None
         self.init_error = None
-        
         try:
-            # --- THIS IS THE CRITICAL FIX ---
-            # Construct an absolute path to the model file.
-            # This ensures the model is found, regardless of where the script is run from.
-            # __file__ gives the path to the current file (model.py).
-            # os.path.dirname gets the directory of that file.
-            # os.path.join combines the directory with the model's filename.
             script_dir = os.path.dirname(__file__)
             absolute_model_path = os.path.join(script_dir, model_path)
-
             providers = ['CPUExecutionProvider']
             self.session = ort.InferenceSession(absolute_model_path, providers=providers)
             self.input_name = self.session.get_inputs()[0].name
@@ -68,16 +59,20 @@ class OnnxModel:
             self.init_error = str(e)
 
     def predict(self, preprocessed_image):
+        """
+        Runs inference and returns the raw array of output scores (logits).
+        """
         if not self.session:
-            return f"MODEL FAILED TO LOAD: {self.init_error}"
+            raise RuntimeError(f"MODEL FAILED TO LOAD: {self.init_error}")
             
         try:
             ort_inputs = {self.input_name: preprocessed_image}
             ort_outs = self.session.run([self.output_name], ort_inputs)
             
-            logits = ort_outs[0]
-            predicted_class_index = np.argmax(logits, axis=1)[0]
+            # --- THIS IS THE FIX ---
+            # Return the raw output array from the ONNX model.
+            # Do NOT calculate argmax here. Let the caller do it.
+            return ort_outs[0] 
             
-            return int(predicted_class_index)
         except Exception as e:
-            return f"INFERENCE FAILED: {str(e)}"
+            raise RuntimeError(f"INFERENCE FAILED: {str(e)}")

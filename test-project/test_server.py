@@ -67,6 +67,7 @@ def run_preset_test_suite():
     passed_count = 0
     for image_file, expected_id in tests.items():
         predicted_id = test_single_image(image_file)
+        print(image_file, expected_id, predicted_id)
         if predicted_id == expected_id:
             print(f"✅ PASSED: Correctly classified '{image_file}'.")
             passed_count += 1
