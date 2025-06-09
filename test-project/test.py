@@ -1,56 +1,61 @@
-# test.py
-from PIL import Image
 import numpy as np
-
-# --- CHANGE 1: Import the single, self-contained Model class ---
-from model import Model
+import torch
+from pytorch_model import Classifier # Used for numerical comparison
+from model import ImagePreprocessor, OnnxModel
 
 def run_local_tests():
     """
-    Executes a suite of local tests for the self-contained classification model.
-    This script now mirrors how a deployment server will use the Model class.
+    Executes a comprehensive suite of local tests for the image classification pipeline.
     """
     print("--- Starting Local Test Suite ---")
 
     # --- Test Setup ---
-    # The model path is now handled inside the Model class, so we don't need it here.
+    weights_path = 'weights/pytorch_model_weights.pth'
+    onnx_path = 'model.onnx'
     test_images = {
         "n01440764_tench.jpeg": 0,
         "n01667114_mud_turtle.jpeg": 35,
         "n01491361_tiger_shark.jpeg": 3
     }
+    preprocessor = ImagePreprocessor()
+    onnx_model = OnnxModel(onnx_path)
 
-    # --- CHANGE 2: Initialize only the single Model object ---
-    # This single object contains both the preprocessor and the ONNX session.
-    try:
-        model = Model()
-        print("[Test 1] ✅ PASSED: Model initialized successfully.")
-    except Exception as e:
-        print(f"[Test 1] ❌ FAILED: Model initialization error: {e}")
-        return # Exit if the model can't even be loaded
+    # --- Test 1: Image Pre-processing Logic ---
+    print("\n[Test 1] Verifying Image Pre-processing...")
+    sample_image_path = list(test_images.keys())[0]
+    processed_img = preprocessor.preprocess(sample_image_path)
+    expected_shape = (1, 3, 224, 224)
+    assert processed_img.shape == expected_shape, f"Pre-processing failed. Shape is {processed_img.shape}, expected {expected_shape}."
+    print("✅ PASSED: Pre-processing output shape is correct.")
 
-    # --- CHANGE 3: Combine preprocessing and inference tests ---
-    # The model's predict method now handles the full end-to-end pipeline.
-    print("\n[Test 2] Verifying End-to-End Model Inference and Correctness...")
+    # --- Test 2: ONNX Model Inference and Correctness ---
+    print("\n[Test 2] Verifying ONNX Model Inference and Correctness...")
     for image_path, expected_id in test_images.items():
-        try:
-            # Load the image as a PIL object, which our new model expects
-            img = Image.open(image_path)
-            
-            # The predict method expects a dictionary payload, just like a server
-            prediction_payload = {"image": img}
-            
-            # Call predict on the raw image payload
-            predicted_id = model.predict(prediction_payload)
+        processed_img = preprocessor.preprocess(image_path)
+        probabilities = onnx_model.predict(processed_img)
+        predicted_id = np.argmax(probabilities)
+        assert predicted_id == expected_id, f"FAILED for {image_path}. Predicted {predicted_id}, expected {expected_id}."
+        print(f"✅ PASSED: Correctly classified '{image_path}' as class {predicted_id}.")
+    
+    # --- Test 3: Numerical Consistency Check (ONNX vs. PyTorch) ---
+    print("\n[Test 3] Verifying Numerical Consistency between ONNX and PyTorch...")
+    # Load original PyTorch model
+    pt_model = Classifier(num_classes=1000)
+    pt_model.load_state_dict(torch.load(weights_path, map_location='cpu'))
+    pt_model.eval()
 
-            # The assert remains the same, comparing the final integer IDs
-            assert predicted_id == expected_id, f"FAILED for {image_path}. Predicted {predicted_id}, expected {expected_id}."
-            print(f"✅ PASSED: Correctly classified '{image_path}' as class {predicted_id}.")
-        except Exception as e:
-            print(f"❌ FAILED for {image_path} with error: {e}")
+    # Get outputs from both models using the same input
+    sample_input_tensor = torch.from_numpy(preprocessor.preprocess(sample_image_path))
+    with torch.no_grad():
+        pt_output = pt_model(sample_input_tensor).numpy()
+    
+    onnx_output = onnx_model.predict(sample_input_tensor.numpy())
+    
+    # Check if outputs are numerically close
+    np.testing.assert_allclose(pt_output, onnx_output, rtol=1e-03, atol=1e-05)
+    print("✅ PASSED: ONNX and PyTorch model outputs are numerically consistent.")
 
     print("\n--- All Local Tests Passed Successfully! ---")
 
 if __name__ == "__main__":
     run_local_tests()
-

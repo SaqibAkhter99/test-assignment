@@ -14,3 +14,11 @@ memory = 8.0
 # Scale to zero when idle to minimize costs on the free plan
 min_replicas = 0 
 
+[build]
+# The 'include' key must list every file your application needs to run.
+# Make sure "model.onnx" is present in this list.
+include = [
+    "model.py",
+    "main.py",
+    "model.onnx" # <-- This is the missing piece
+]
