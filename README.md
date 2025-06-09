@@ -85,5 +85,3 @@ This will test the two sample images and verify their class IDs.
 ```
 python test_server.py --test-suite
 ```
-```
-
