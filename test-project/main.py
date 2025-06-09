@@ -1,5 +1,3 @@
-
-# main.py
 import base64
 import io
 import numpy as np
@@ -17,36 +15,25 @@ def setup():
     print("Setup complete: Preprocessor and ONNX model are initialized and ready.")
 
 def run(item: dict):
-    """
-    This function is called for every API request.
-    It expects a JSON payload with a base64 encoded image string.
-    """
-    # Input validation
-    if 'image_b64' not in item:
-        return {"error": "Request must include 'image_b64' field."}
-
     try:
-        # Decode the base64 string to bytes
+        # ... (your existing try block logic) ...
         image_data = base64.b64decode(item['image_b64'])
-        # Open the image from the in-memory bytes
         image = Image.open(io.BytesIO(image_data))
-
-        # Process the image using our preprocessor class
         preprocessed_img = preprocessor.preprocess(image)
-
-        # Get prediction probabilities from our model class
         probabilities = model.predict(preprocessed_img)
         
-        # Get the index of the highest probability, which is the class ID
-        predicted_class_id = int(np.argmax(probabilities))
+        # Add a check here to ensure probabilities are not empty
+        if probabilities is None or probabilities.size == 0:
+            raise ValueError("Model returned an empty prediction.")
 
-        # Return the class ID and the full probability array
+        predicted_class_id = int(np.argmax(probabilities))
         return {
             "predicted_class_id": predicted_class_id,
             "probabilities": probabilities.tolist()
         }
 
     except Exception as e:
-        # Return a server error if anything goes wrong
+        # CRUCIAL CHANGE: Print the actual error to the server logs
+        print(f"!!! INFERENCE ERROR: {e}")
+        # Return a dictionary that clearly indicates an error
         return {"error": f"An unexpected error occurred: {str(e)}"}
-

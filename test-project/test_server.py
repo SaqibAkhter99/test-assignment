@@ -10,44 +10,33 @@ import numpy as np
 CEREBRIUM_API_KEY = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiJwLWVkNmY4MDY1IiwiaWF0IjoxNzQ5NDU3NDE1LCJleHAiOjIwNjUwMzM0MTV9.BqjfaGzQBHVGlOfL-3W_PXkOicLCsufz9J94XUWqmCOn_JY_oZC2MXJVetccQW7hPdFoYyrgKzFTarNsefMO4W7D-NoekdckdnzxE6xFH9zUVmuRJzhkeyUS_tywzopULmpyawXgObbYBfkX2mSZf6xta0n_ubVY7IaTnzHHuct-GZqcwVU3oNNyX8X3hk1OWAx7aG2l-MqpEbIKGL8okbopeYRVjo2gxRB4IDFQvcFnmYMLMp3xPkXYhH_9T8hbs1tJIVKrD1iVcRkX6sZQDNJFC4UUTBVMPJ64ctkpsbMCjdqVq6pa1WPbGunY3P_0Myk4LyM1rfYXxt38jb_-Uw"
 ENDPOINT_URL = "https://api.cortex.cerebrium.ai/v4/p-ed6f8065/image-classifier-prod/run"
 
+
+
 def test_single_image(image_path: str):
-    """Sends one image to the deployed endpoint and prints the result."""
-    if not os.path.exists(image_path):
-        print(f"Error: Image path does not exist: {image_path}")
-        return None
+    # ... (code to open image and prepare payload remains the same) ...
 
-    # Read the image file in binary mode and encode it to base64
-    with open(image_path, "rb") as f:
-        image_b64 = base64.b64encode(f.read()).decode("utf-8")
-
-    # Prepare the JSON payload and headers
-    # After the fix
-    payload = {"item": {"image_b64": image_b64}}
-    headers = {
-        "Authorization": f"Bearer {CEREBRIUM_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    print(f"\n--- Testing with image: {os.path.basename(image_path)} ---")
-    
-    # Platform Test: Measure latency
-    start_time = time.time()
+    # ... (code for headers and timing) ...
     response = requests.post(ENDPOINT_URL, json=payload, headers=headers)
-    end_time = time.time()
-    latency_ms = (end_time - start_time) * 1000
-
-    # Platform Test: Check status code and print latency
-    print(f"-> HTTP Status Code: {response.status_code}")
-    print(f"-> Response Time: {latency_ms:.2f} ms")
+    # ... (code for printing status and latency) ...
 
     if response.status_code == 200:
         result = response.json()
+        
+        # CRUCIAL CHANGE: Check if the server returned an error message
+        if "error" in result:
+            print(f"-> Server-side error reported: {result['error']}")
+            return None
+        
+        # This code will now only run if there was no error key
         predicted_id = result.get("predicted_class_id")
         print(f"-> API Response: Predicted Class ID = {predicted_id}")
         return predicted_id
     else:
-        print(f"-> Error from API: {response.text}")
+        print(f"-> HTTP Error: {response.text}")
         return None
+
+# ... (The run_preset_test_suite and main block do not need changes) ...
+
 
 def run_preset_test_suite():
     """Runs a series of tests with known outcomes against the deployed model."""
