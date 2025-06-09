@@ -36,7 +36,6 @@ def test_single_image(image_path: str):
     print(f"\n--- Testing with image: {os.path.basename(image_path)} ---")
     
     start_time = time.time()
-    # Now, 'payload' is defined and can be used here without error
     response = requests.post(ENDPOINT_URL, json=payload, headers=headers)
     end_time = time.time()
     latency_ms = (end_time - start_time) * 1000

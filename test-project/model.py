@@ -1,4 +1,3 @@
-# model.py
 import numpy as np
 from PIL import Image
 import onnxruntime as ort
@@ -44,6 +43,8 @@ class ImagePreprocessor:
         # 6. Add a batch dimension to create a [1, C, H, W] tensor
         return np.expand_dims(transposed_img, axis=0).astype(np.float32)
 
+# In model.py, inside the OnnxModel class
+
 class OnnxModel:
     """
     Loads an ONNX model and provides a method to run predictions.
@@ -58,9 +59,20 @@ class OnnxModel:
 
     def predict(self, preprocessed_image):
         """
-        Runs the preprocessed image through the ONNX model and returns the output.
+        Runs the preprocessed image through the ONNX model and returns the 
+        final predicted class index.
         """
+        # The input to the session must be a dictionary
         ort_inputs = {self.input_name: preprocessed_image}
+        
+        # ort_outs is a list of numpy arrays, one for each model output
         ort_outs = self.session.run(None, ort_inputs)
-        return ort_outs[0]
-	
+        
+        # 1. Get the first (and only) output array, which contains the logits
+        logits = ort_outs[0]
+        
+        # 2. Find the index of the highest score along the class dimension (axis=1)
+        #    This is the equivalent of torch.argmax()
+        predicted_class_index = np.argmax(logits, axis=1)[0]
+        
+        return predicted_class_index
