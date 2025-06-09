@@ -44,35 +44,45 @@ class ImagePreprocessor:
         return np.expand_dims(transposed_img, axis=0).astype(np.float32)
 
 # In model.py, inside the OnnxModel class
-
 class OnnxModel:
-    """
-    Loads an ONNX model and provides a method to run predictions.
-    """
     def __init__(self, model_path="model.onnx"):
         print("Initializing ONNX Runtime session...")
-        # For GPU, specify 'CUDAExecutionProvider'
-        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
-        self.session = ort.InferenceSession(model_path, providers=providers)
-        self.input_name = self.session.get_inputs()[0].name
-        print(f"ONNX model loaded. Input name: '{self.input_name}'.")
+        try:
+            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+            self.session = ort.InferenceSession(model_path, providers=providers)
+            
+            # Get input details
+            self.input_details = self.session.get_inputs()[0]
+            self.input_name = self.input_details.name
+            input_shape = self.input_details.shape
+            input_type = self.input_details.type
 
+            # Get output details
+            self.output_name = self.session.get_outputs()[0].name
+
+            print("--- ONNX Model Details ---")
+            print(f"Input Name: {self.input_name}")
+            print(f"Input Shape: {input_shape} (Note: 'None' or 'N' is the batch size)")
+            print(f"Input Type: {input_type}")
+            print("--------------------------")
+
+        except Exception as e:
+            print(f"Failed to load ONNX model: {e}")
+            self.session = None
     def predict(self, preprocessed_image):
-        """
-        Runs the preprocessed image through the ONNX model and returns the 
-        final predicted class index.
-        """
-        # The input to the session must be a dictionary
-        ort_inputs = {self.input_name: preprocessed_image}
-        
-        # ort_outs is a list of numpy arrays, one for each model output
-        ort_outs = self.session.run(None, ort_inputs)
-        
-        # 1. Get the first (and only) output array, which contains the logits
-        logits = ort_outs[0]
-        
-        # 2. Find the index of the highest score along the class dimension (axis=1)
-        #    This is the equivalent of torch.argmax()
-        predicted_class_index = np.argmax(logits, axis=1)[0]
-        
-        return predicted_class_index
+        try:
+            # --- DIAGNOSTIC STEP ---
+            # Print the shape and type of the input just before running the model
+            print(f"DEBUG: Input tensor shape: {preprocessed_image.shape}, dtype: {preprocessed_image.dtype}")
+
+            ort_inputs = {self.input_name: preprocessed_image}
+            ort_outs = self.session.run([self.output_name], ort_inputs)
+            
+            logits = ort_outs[0]
+            predicted_class_index = np.argmax(logits, axis=1)[0]
+            
+            return int(predicted_class_index) # Ensure it returns a standard Python int
+
+        except Exception as e:
+            print(f"!!!!!!!!!! ERROR during ONNX inference: {e} !!!!!!!!!!!")
+            return None # Return None on failure
