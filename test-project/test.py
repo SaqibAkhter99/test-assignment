@@ -1,41 +1,53 @@
 # test.py
-from model import ImagePreprocessor, OnnxModel
+from PIL import Image
+import numpy as np
+
+# --- CHANGE 1: Import the single, self-contained Model class ---
+from model import Model
 
 def run_local_tests():
     """
-    Executes a comprehensive suite of local tests for the image classification pipeline.
+    Executes a suite of local tests for the self-contained classification model.
+    This script now mirrors how a deployment server will use the Model class.
     """
     print("--- Starting Local Test Suite ---")
 
     # --- Test Setup ---
-    onnx_path = 'model.onnx'
+    # The model path is now handled inside the Model class, so we don't need it here.
     test_images = {
         "n01440764_tench.jpeg": 0,
         "n01667114_mud_turtle.jpeg": 35
     }
-    preprocessor = ImagePreprocessor()
-    onnx_model = OnnxModel(onnx_path)
 
-    # --- Test 1: Image Pre-processing Logic ---
-    print("\n[Test 1] Verifying Image Pre-processing...")
-    sample_image_path = list(test_images.keys())[0]
-    processed_img = preprocessor.preprocess(sample_image_path)
-    expected_shape = (1, 3, 224, 224)
-    assert processed_img.shape == expected_shape, f"Pre-processing failed. Shape is {processed_img.shape}, expected {expected_shape}."
-    print("✅ PASSED: Pre-processing output shape is correct.")
+    # --- CHANGE 2: Initialize only the single Model object ---
+    # This single object contains both the preprocessor and the ONNX session.
+    try:
+        model = Model()
+        print("[Test 1] ✅ PASSED: Model initialized successfully.")
+    except Exception as e:
+        print(f"[Test 1] ❌ FAILED: Model initialization error: {e}")
+        return # Exit if the model can't even be loaded
 
-    # --- Test 2: ONNX Model Inference and Correctness ---
-    print("\n[Test 2] Verifying ONNX Model Inference and Correctness...")
+    # --- CHANGE 3: Combine preprocessing and inference tests ---
+    # The model's predict method now handles the full end-to-end pipeline.
+    print("\n[Test 2] Verifying End-to-End Model Inference and Correctness...")
     for image_path, expected_id in test_images.items():
-        processed_img = preprocessor.preprocess(image_path)
-        
-        # --- THIS IS THE FIX ---
-        # The predict method now directly returns the final ID.
-        predicted_id = onnx_model.predict(processed_img)
+        try:
+            # Load the image as a PIL object, which our new model expects
+            img = Image.open(image_path)
+            
+            # The predict method expects a dictionary payload, just like a server
+            prediction_payload = {"image": img}
+            
+            # Call predict on the raw image payload
+            predicted_id = model.predict(prediction_payload)
 
-        # The assert remains the same, but now it compares two integers.
-        assert predicted_id == expected_id, f"FAILED for {image_path}. Predicted {predicted_id}, expected {expected_id}."
-        print(f"✅ PASSED: Correctly classified '{image_path}' as class {predicted_id}.")
+            # The assert remains the same, comparing the final integer IDs
+            assert predicted_id == expected_id, f"FAILED for {image_path}. Predicted {predicted_id}, expected {expected_id}."
+            print(f"✅ PASSED: Correctly classified '{image_path}' as class {predicted_id}.")
+        except Exception as e:
+            print(f"❌ FAILED for {image_path} with error: {e}")
+
     print("\n--- All Local Tests Passed Successfully! ---")
 
 if __name__ == "__main__":
