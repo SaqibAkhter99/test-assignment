@@ -23,7 +23,7 @@ def run(item: dict):
     """
     # Input validation
     if 'image_b64' not in item:
-        return {"error": "Request must include 'image_b64' field."}, 400
+        return {"error": "Request must include 'image_b64' field."}
 
     try:
         # Decode the base64 string to bytes
@@ -44,9 +44,9 @@ def run(item: dict):
         return {
             "predicted_class_id": predicted_class_id,
             "probabilities": probabilities.tolist()
-        }, 200
+        }
 
     except Exception as e:
         # Return a server error if anything goes wrong
-        return {"error": f"An unexpected error occurred: {str(e)}"}, 500
+        return {"error": f"An unexpected error occurred: {str(e)}"}
 

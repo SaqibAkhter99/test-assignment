@@ -6,10 +6,9 @@ import argparse
 import os
 import numpy as np
 
-# !!! IMPORTANT !!!
-# REPLACE these placeholders with your actual Cerebrium API Key and Endpoint URL after deployment.
-CEREBRIUM_API_KEY = "YOUR_CEREBRIUM_API_KEY_HERE"
-ENDPOINT_URL = "YOUR_ENDPOINT_URL_HERE"
+# Constants for the Cerebrium API
+CEREBRIUM_API_KEY = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiJwLWVkNmY4MDY1IiwiaWF0IjoxNzQ5NDU3NDE1LCJleHAiOjIwNjUwMzM0MTV9.BqjfaGzQBHVGlOfL-3W_PXkOicLCsufz9J94XUWqmCOn_JY_oZC2MXJVetccQW7hPdFoYyrgKzFTarNsefMO4W7D-NoekdckdnzxE6xFH9zUVmuRJzhkeyUS_tywzopULmpyawXgObbYBfkX2mSZf6xta0n_ubVY7IaTnzHHuct-GZqcwVU3oNNyX8X3hk1OWAx7aG2l-MqpEbIKGL8okbopeYRVjo2gxRB4IDFQvcFnmYMLMp3xPkXYhH_9T8hbs1tJIVKrD1iVcRkX6sZQDNJFC4UUTBVMPJ64ctkpsbMCjdqVq6pa1WPbGunY3P_0Myk4LyM1rfYXxt38jb_-Uw"
+ENDPOINT_URL = "https://api.cortex.cerebrium.ai/v4/p-ed6f8065/image-classifier-prod/run"
 
 def test_single_image(image_path: str):
     """Sends one image to the deployed endpoint and prints the result."""
@@ -22,7 +21,8 @@ def test_single_image(image_path: str):
         image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
     # Prepare the JSON payload and headers
-    payload = {"image_b64": image_b64}
+    # After the fix
+    payload = {"item": {"image_b64": image_b64}}
     headers = {
         "Authorization": f"Bearer {CEREBRIUM_API_KEY}",
         "Content-Type": "application/json"

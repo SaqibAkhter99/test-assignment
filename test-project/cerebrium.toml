@@ -3,11 +3,11 @@
 name = "image-classifier-prod"
 
 # This flag is essential for custom Docker image deployment
-use_dockerfile = true 
+#use_dockerfile = true 
 
 [cerebrium.hardware]
 # T4 is a good balance of performance and cost for inference
-gpu = "T4" 
+compute = "TURING_T4" 
 memory = 8.0
 
 [cerebrium.scaling]

@@ -62,10 +62,6 @@ class OnnxModel:
         """
         # Create the input dictionary for ONNX Runtime
         ort_inputs = {self.input_name: preprocessed_image}
-        
-        # Run inference
         ort_outs = self.session.run(None, ort_inputs)
-        
-        # Return the first output (the probability array)
         return ort_outs[0]
-
+    
