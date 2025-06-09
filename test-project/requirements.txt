@@ -2,6 +2,6 @@
 numpy
 Pillow
 # Use the GPU version of ONNX Runtime for accelerated inference
-onnxruntime-gpu
+onnxruntime
 requests
 

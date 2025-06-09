@@ -45,44 +45,46 @@ class ImagePreprocessor:
 
 # In model.py, inside the OnnxModel class
 class OnnxModel:
+    """
+    Loads an ONNX model and provides a method to run predictions.
+    """
     def __init__(self, model_path="model.onnx"):
-        print("Initializing ONNX Runtime session...")
         try:
             providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
             self.session = ort.InferenceSession(model_path, providers=providers)
-            
-            # Get input details
-            self.input_details = self.session.get_inputs()[0]
-            self.input_name = self.input_details.name
-            input_shape = self.input_details.shape
-            input_type = self.input_details.type
-
-            # Get output details
+            self.input_name = self.session.get_inputs()[0].name
             self.output_name = self.session.get_outputs()[0].name
-
-            print("--- ONNX Model Details ---")
-            print(f"Input Name: {self.input_name}")
-            print(f"Input Shape: {input_shape} (Note: 'None' or 'N' is the batch size)")
-            print(f"Input Type: {input_type}")
-            print("--------------------------")
-
         except Exception as e:
-            print(f"Failed to load ONNX model: {e}")
+            # If the model fails to load, store the error
             self.session = None
-    def predict(self, preprocessed_image):
-        try:
-            # --- DIAGNOSTIC STEP ---
-            # Print the shape and type of the input just before running the model
-            print(f"DEBUG: Input tensor shape: {preprocessed_image.shape}, dtype: {preprocessed_image.dtype}")
+            self.init_error = str(e)
 
+    def predict(self, preprocessed_image):
+        """
+        Runs the preprocessed image through the ONNX model.
+        On success, returns the predicted class index.
+        On failure, returns the error message as a string.
+        """
+        # Check if the model failed to load during initialization
+        if not self.session:
+            return f"MODEL INIT FAILED: {self.init_error}"
+            
+        try:
+            # The input to the session must be a dictionary
             ort_inputs = {self.input_name: preprocessed_image}
+            
+            # ort_outs is a list of numpy arrays
             ort_outs = self.session.run([self.output_name], ort_inputs)
             
             logits = ort_outs[0]
             predicted_class_index = np.argmax(logits, axis=1)[0]
             
-            return int(predicted_class_index) # Ensure it returns a standard Python int
+            # Return a standard Python integer
+            return int(predicted_class_index)
 
         except Exception as e:
-            print(f"!!!!!!!!!! ERROR during ONNX inference: {e} !!!!!!!!!!!")
-            return None # Return None on failure
+            # THIS IS THE CRITICAL CHANGE:
+            # Instead of returning None, return the error message as a string.
+            error_message = f"INFERENCE FAILED: {str(e)}"
+            print(error_message) # This might still be useful if logs are captured somewhere
+            return error_message
