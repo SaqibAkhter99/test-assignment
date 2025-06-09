@@ -24,7 +24,6 @@ def test_single_image(image_path: str):
     with open(image_path, "rb") as f:
         image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # --- THIS IS THE CRUCIAL LINE THAT WAS MISSING ---
     # Prepare the JSON payload in the format the server expects
     payload = {"item": {"image_b64": image_b64}}
 
