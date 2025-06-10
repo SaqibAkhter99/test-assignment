@@ -86,6 +86,16 @@ After deployment, Cerebrium will provide you with an **API Key** and an **Endpoi
     ```
     python test_server.py --run-suite
     ```
+*  **To trigger the flow from postman:**
+   ```
+   curl --location 'https://api.cortex.cerebrium.ai/v4/p-ed6f8065/image-classifier-prod/run' \
+   --header 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiJwLWVkNmY4MDY1IiwiaWF0IjoxNzQ5NDU3NDE1LCJleHAiOjIwNjUwMzM0MTV9.BqjfaGzQBHVGlOfL-3W_PXkOicLCsufz9J94XUWqmCOn_JY_oZC2MXJVetccQW7hPdFoYyrgKzFTarNsefMO4W7D-NoekdckdnzxE6xFH9zUVmuRJzhkeyUS_tywzopULmpyawXgObbYBfkX2mSZf6xta0n_ubVY7IaTnzHHuct-GZqcwVU3oNNyX8X3hk1OWAx7aG2l-MqpEbIKGL8okbopeYRVjo2gxRB4IDFQvcFnmYMLMp3xPkXYhH_9T8hbs1tJIVKrD1iVcRkX6sZQDNJFC4UUTBVMPJ64ctkpsbMCjdqVq6pa1WPbGunY3P_0Myk4LyM1rfYXxt38jb_-Uw' \
+   --header 'Content-Type: application/json' \
+   --data '{
+      "item": {
+         "image_b64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
+      }
+   }'
+   ```
 This will test the two sample images and provide a pass/fail summary, along with latency and status code monitoring for each request.
-```
 
