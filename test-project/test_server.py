@@ -47,7 +47,7 @@ def test_single_image(image_path: str):
         if "error" in result:
             print(f"-> Server-side error reported: {result['error']}")
             return None
-        predicted_id = result.get("predicted_class_id")
+        predicted_id = result.get("result", {}).get("predicted_class_id")
         print(f"-> API Response: Predicted Class ID = {predicted_id}")
         return predicted_id
     else:
@@ -66,7 +66,6 @@ def run_preset_test_suite():
     passed_count = 0
     for image_file, expected_id in tests.items():
         predicted_id = test_single_image(image_file)
-        print(image_file, expected_id, predicted_id)
         if predicted_id == expected_id:
             print(f"✅ PASSED: Correctly classified '{image_file}'.")
             passed_count += 1

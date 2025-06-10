@@ -6,16 +6,17 @@ import re
 from model import ImagePreprocessor, OnnxModel
 
 def setup():
-    """
-    This function is run once when the serverless machine boots up.
-    It loads the model and preprocessor to be reused across requests.
-    """
     global preprocessor, model
     preprocessor = ImagePreprocessor()
     model = OnnxModel()
     print("Setup complete: Preprocessor and ONNX model are initialized and ready.")
 
 def run(item: dict):
+    global preprocessor, model
+    if 'preprocessor' not in globals():
+        preprocessor = ImagePreprocessor()
+    if 'model' not in globals():
+        model = OnnxModel()
     if 'image_b64' not in item:
         return {"error": "Request must include 'image_b64' field."}
 

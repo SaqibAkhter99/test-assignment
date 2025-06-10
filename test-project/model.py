@@ -68,10 +68,6 @@ class OnnxModel:
         try:
             ort_inputs = {self.input_name: preprocessed_image}
             ort_outs = self.session.run([self.output_name], ort_inputs)
-            
-            # --- THIS IS THE FIX ---
-            # Return the raw output array from the ONNX model.
-            # Do NOT calculate argmax here. Let the caller do it.
             return ort_outs[0] 
             
         except Exception as e:
@@ -107,7 +103,7 @@ def predict(item):
         # 4. Calculate final prediction
         predicted_id = int(np.argmax(logits, axis=1)[0])
         
-        return predicted_id
+        return int(predicted_id)
         
     except Exception as e:
         return {"error": str(e)}
